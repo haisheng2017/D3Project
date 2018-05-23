@@ -58,3 +58,30 @@ g.append("g")
     .attr("text-anchor", "end")  //对齐
     .attr("dy", "1em") //沿x轴偏移
     .attr("fill", "black");  //i don't know why we need this attr but it works ,otherwise we can not see the text because it is none color.
+
+
+d3.select('#container')
+    .append("svg:svg")
+    //width,height
+    .attr("width", width)  //attribute
+    .attr("height", height)
+    .attr("id", "area_svg");
+
+var area_generator=d3.area()
+    .x(function (d, i) {
+        return scale_x(i);
+    })    //0,1,2,3
+    .y0(g_height)
+    .y1(function (d) {
+        return scale_y(d);
+    })   //1,3,5
+    .curve(d3.curveCardinal);   // v3 -- interpolate("cardinal") 曲线化
+
+g = d3.select("#area_svg")
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //translate from 0,0
+
+g
+.append("path")
+.attr("d",area_generator(data))
+.style("fill","steelblue");
