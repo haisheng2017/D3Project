@@ -89,8 +89,7 @@ g = d3.select("#area_svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); //translate from 0,0
 
-g
-    .append("path")
+g.append("path")
     .attr("d", area_generator(data))
     .style("fill", "steelblue"); //fill color
 
@@ -98,6 +97,18 @@ g
 var bar_height = 50;
 var bar_padding = 10;
 
+//d3 csv(url,processor,callback)
+
+// function type(d) {
+//     d.population = +d.population; //str to int by '+'
+//     return d;
+// }
+
+//可能会有跨域请求
+//反正要配置很多东西，如果你是静态web
+// d3.csv("data.csv", type, function (data) {
+//      this.data = data;
+// });
 
 var svg_width = 500;
 var svg_height = (bar_height + bar_padding) * data.length;
@@ -118,6 +129,11 @@ var bar = svg.selectAll("g")  //none <g>
         return "translate(0," + i * (bar_padding + bar_height) + ")";
     });
 
+/*
+max(data,function (d) {
+        return d.population;
+    }
+ */
 var scale = d3.scaleLinear()        //must define before used
     .domain([0, d3.max(data)])
     .range([0, svg_width]);
@@ -153,3 +169,110 @@ bar.append("text")
     })
     .attr("y", bar_height / 2)
     .attr("text-anchor", "end");     //对齐属性
+
+
+//竖直柱状图
+//height变width
+//坐标系也要改变
+//原点平移也需要改变
+//缩放也要改变
+
+//ordinal scales 离散
+//linear scales 线性
+
+width = 1000;
+height = 500;
+margin = {
+    left: 30,
+    top: 30,
+    right: 30,
+    bottom: 30
+};
+svg_width = width + margin.left + margin.right;
+svg_height = height + margin.top + margin.bottom;
+
+//ordinal
+svg = d3.select('#container')
+    .append("svg:svg")
+    //width,height
+    .attr("width", svg_width)  //attribute
+    .attr("height", svg_height)
+    .attr("id", "ordinal_svg");
+
+var chart = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+scale = d3.scaleLinear()
+    .domain([0, d3.max(data)])
+    .range([height, 0]);
+
+scale_x = d3.scaleBand()
+    .domain(data.map(function (value) {
+        return value;
+    }))
+    .range([0, width], 0.1);
+
+bar = chart.selectAll("g")  //none <g>
+    .data(data)     //bind data
+    .enter()        //
+    .append("g")        //total <g> = data.length
+    .attr("transform", function (d, i) {
+        return "translate(" + scale_x(d) + ",0)";
+    });
+
+x_axis = d3.axisBottom(scale_x);
+y_axis = d3.axisLeft(scale);
+
+chart.append("g")
+    .call(x_axis)
+    .attr("transform", "translate(0," + height + ")");
+chart.append("g")
+    .call(y_axis);
+
+bar.append("rect")
+    .attr("y", function (d) {
+        return d;
+    })
+    .attr(
+        "height", function (d) {
+            return height - scale(d);
+        }
+    )
+    .attr("width", scale_x.bandwidth())
+    .style("fill", "steelblue");
+
+
+bar.append("text")
+    .text(function (d) {
+        return d;
+    })
+    .attr("y", function (d) {
+        return scale(d);
+    })
+    .attr("x", scale_x.bandwidth() / 2)
+    .attr("text-anchor", "middle")     //对齐属性
+    .attr("dy", 15);
+
+//饼状图
+//v5 d3.arc();
+// v3 d3.svg.arc();
+// var arc_generator=d3.arc()
+//     .innerRadius(0)
+//     .outerRadius(100)
+//     .startAngle(0)
+//     .endAngle(Math.PI / 2);
+
+// v3 d3.layout.pie()
+// v5 d3.pie().value(function(d){return d.population})
+//arc.centroid()
+/*
+v3->v5
+d3.scale.category10 ↦ d3.schemeCategory10
+d3.scale.category20 ↦ d3.schemeCategory20
+d3.scale.category20b ↦ d3.schemeCategory20b
+d3.scale.category20c ↦ d3.schemeCategory20c
+ */
+
+//xchart
+
+//nvd3
